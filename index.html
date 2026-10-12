@@ -233,7 +233,12 @@ html{scroll-behavior:smooth}
         <p class="lead">Seats are limited per room and confirmed by hand. Tell us where you want in. Venue and time go out by email before the public hears.</p>
         <div class="selcity">Selected City<b id="selCity">Pick a city</b></div>
       </div>
-      <form class="req" id="reqForm" novalidate>
+      <form class="req" id="reqForm" action="https://formsubmit.co/waltonjacob300@gmail.com" method="POST">
+          <input type="hidden" name="_subject" value="New Bag Day Tour seat request">
+          <input type="hidden" name="_cc" value="stephaniesan937@gmail.com,jackson.jahmyron05@gmail.com">
+          <input type="hidden" name="_template" value="table">
+          <input type="hidden" name="_captcha" value="false">
+          <input type="text" name="_honey" style="display:none">
         <div class="f"><label for="i-name">Name</label><input id="i-name" name="name" type="text" autocomplete="name" required placeholder="Full name"></div>
         <div class="f"><label for="i-email">Email</label><input id="i-email" name="email" type="email" autocomplete="email" required placeholder="you@email.com"></div>
         <div class="f"><label for="i-phone">Phone</label><input id="i-phone" name="phone" type="tel" autocomplete="tel" placeholder="(000) 000 0000"></div>
@@ -326,72 +331,23 @@ STOPS.forEach(function(s,i){
 
 var sel=document.getElementById("i-city");
 var o0=document.createElement("option");o0.value="";o0.textContent="Pick a city";o0.disabled=true;o0.selected=true;sel.appendChild(o0);
-STOPS.forEach(function(s){if(s.past)return;var o=document.createElement("option");o.value=s.n;o.textContent=s.city+"  ("+dateLabel(s)+")";sel.appendChild(o);});
+STOPS.forEach(function(s){if(s.past)return;var o=document.createElement("option");o.value=s.city;o.textContent=s.city+"  ("+dateLabel(s)+")";sel.appendChild(o);});
 var oa=document.createElement("option");oa.value="any";oa.textContent="Not sure yet / all cities";sel.appendChild(oa);
 sel.addEventListener("change",function(){if(this.value&&this.value!=="any")pick(this.value,false);else if(this.value==="any"){document.getElementById("selCity").textContent="Any / All";document.querySelectorAll(".stop").forEach(function(r){r.classList.remove("sel");});}});
 
-function stopByN(n){return STOPS.filter(function(x){return String(x.n)===String(n);})[0];}
+function stopByN(n){return STOPS.filter(function(x){return String(x.n)===String(n)||x.city===n;})[0];}
 function pick(n,scroll){
   var s=stopByN(n);if(!s)return;
-  document.querySelectorAll(".stop").forEach(function(r){r.classList.toggle("sel",r.getAttribute("data-n")===String(n));});
-  sel.value=String(n);
+  document.querySelectorAll(".stop").forEach(function(r){r.classList.toggle("sel",r.getAttribute("data-n")===String(s.n));});
+  sel.value=s.city;
   document.getElementById("selCity").textContent=s.city;
   if(scroll)document.getElementById("access").scrollIntoView({behavior:"smooth"});
 }
 if(nextIdx>-1)pick(STOPS[nextIdx].n,false);
 function cityLabel(v){if(v==="any")return"Any / All";var s=stopByN(v);return s?s.city:v;}
 
-/* capabilities + form */
-var dbReady=null,userReady=null;
-async function initCaps(){
-  try{dbReady=window.claude&&claude.use?await claude.use("db"):null;}catch(e){dbReady=null;}
-  try{userReady=window.claude&&claude.use?await claude.use("user"):null;}catch(e){userReady=null;}
-  if(!dbReady)document.getElementById("note").textContent="Note: requests save when you're signed in to Claude. On a public link, screenshot this and send it to the host to lock your seat.";
-  if(userReady){var can=false;try{can=(userReady.isOwner&&userReady.isOwner())||(userReady.canEdit&&userReady.canEdit());}catch(e){}if(can)startManifest();}
-}
-var msg=document.getElementById("msg"),reqBtn=document.getElementById("reqBtn");
-document.getElementById("reqForm").addEventListener("submit",async function(ev){
-  ev.preventDefault();
-  var f=ev.target,name=f.name.value.trim(),email=f.email.value.trim(),city=f.city.value;
-  msg.className="msg";
-  if(!name||!email){msg.className="msg warn";msg.textContent="Add your name and email so we can reach you.";return;}
-  if(!city){msg.className="msg warn";msg.textContent="Pick which city you want in.";return;}
-  var rec={name:name,email:email,phone:f.phone.value.trim(),cityId:city,city:cityLabel(city),guests:f.guests.value,note:f.note.value.trim(),ts:Date.now()};
-  if(dbReady===null){try{dbReady=window.claude&&claude.use?await claude.use("db"):null;}catch(e){dbReady=null;}}
-  if(!dbReady){msg.className="msg warn";msg.textContent="Noted, "+name.split(" ")[0]+". This link can't save it. Screenshot this and send it to the host to lock "+rec.city+".";return;}
-  reqBtn.disabled=true;reqBtn.textContent="Sending...";
-  try{
-    if(userReady){try{rec.by=await userReady.id();}catch(e){}}
-    await dbReady.collection("rsvps").add(rec);
-    f.reset();sel.selectedIndex=0;
-    msg.textContent="In. Seat requested for "+rec.city+", "+name.split(" ")[0]+". Confirmation goes to your email.";
-  }catch(e){
-    msg.className="msg warn";
-    msg.textContent=(e&&e.code==="invalid_argument")?"This link is view only, so it can't save your request. DM the host to lock your seat.":"Something glitched. Try once more in a moment.";
-  }finally{reqBtn.disabled=false;reqBtn.textContent="Request Seat";}
-});
 
-var LATEST=[];
-function startManifest(){
-  document.getElementById("manifest").classList.add("show");
-  try{dbReady.collection("rsvps").orderBy("ts","desc").limit(1000).onSnapshot(function(snap){LATEST=[];snap.docs.forEach(function(d){var v=d.data()||{};v._id=d.id;LATEST.push(v);});renderMf();},function(){});}catch(e){}
-}
-function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
-function renderMf(){
-  var b=document.getElementById("mfBody"),e=document.getElementById("mfEmpty");
-  document.getElementById("mfCount").textContent=LATEST.length+" request"+(LATEST.length===1?"":"s");
-  b.innerHTML="";if(!LATEST.length){e.style.display="block";return;}e.style.display="none";
-  LATEST.forEach(function(v){var tr=document.createElement("tr");tr.innerHTML="<td>"+esc(v.name)+"</td><td>"+esc(v.city)+"</td><td>"+esc(v.guests)+"</td><td>"+esc(v.email)+"</td><td>"+esc(v.phone)+"</td>";b.appendChild(tr);});
-}
-document.getElementById("mfCopy").addEventListener("click",function(){
-  var rows=[["Name","City","Seats","Email","Phone","Note","When"]];
-  LATEST.forEach(function(v){rows.push([v.name,v.city,v.guests,v.email,v.phone,v.note,new Date(v.ts).toLocaleString()]);});
-  var csv=rows.map(function(r){return r.map(function(c){c=String(c==null?"":c);return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c;}).join(",");}).join("\n");
-  var btn=this;function done(){var t=btn.textContent;btn.textContent="Copied";setTimeout(function(){btn.textContent=t;},1300);}
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(csv).then(done).catch(fb);}else{fb();}
-  function fb(){var ta=document.createElement("textarea");ta.value=csv;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy");done();}catch(e){}document.body.removeChild(ta);}
-});
-initCaps();
+document.getElementById("note").textContent="We email you back to confirm your seat. First come, first seated.";
 </script>
 
 </html>

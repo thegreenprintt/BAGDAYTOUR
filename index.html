@@ -239,12 +239,7 @@ html{scroll-behavior:smooth}
         <p class="lead">Seats are limited per room and confirmed by hand. Tell us where you want in. Venue and time go out by email before the public hears.</p>
         <div class="selcity">Selected City<b id="selCity">Pick a city</b></div>
       </div>
-      <div class="reqcol"><form class="req" id="reqForm" action="https://formsubmit.co/waltonjacob300@gmail.com" method="POST">
-          <input type="hidden" name="_subject" value="New Bag Day Tour seat request">
-          <input type="hidden" name="_cc" value="stephaniesan937@gmail.com,jackson.jahmyron05@gmail.com">
-          <input type="hidden" name="_template" value="table">
-          <input type="hidden" name="_captcha" value="false">
-          <input type="text" name="_honey" style="display:none">
+      <div class="reqcol"><form class="req" id="reqForm" novalidate>
         <div class="f"><label for="i-name">Name</label><input id="i-name" name="name" type="text" autocomplete="name" required placeholder="Full name"></div>
         <div class="f"><label for="i-email">Email</label><input id="i-email" name="email" type="email" autocomplete="email" required placeholder="you@email.com"></div>
         <div class="f"><label for="i-phone">Phone</label><input id="i-phone" name="phone" type="tel" autocomplete="tel" placeholder="(000) 000 0000"></div>
@@ -257,11 +252,11 @@ html{scroll-behavior:smooth}
         <div class="msg" id="msg" role="status" aria-live="polite"></div>
         <p class="note" id="note">Sent straight to the hosts. First come, first seated.</p>
       </form>
-        <div class="thanks" id="thanks" hidden>
-          <div class="t-k">Request Received</div>
-          <h3 class="t-h">You're in, <span id="thanksName">friend</span>.</h3>
-          <p class="t-p">Seat held for <b id="thanksCity">your city</b>. Watch your email, we confirm every seat by hand before the public hears.</p>
-        </div></div>
+<div class="thanks" id="thanks" hidden>
+<div class="t-k">Request Received</div>
+<h3 class="t-h">You're in, <span id="thanksName">friend</span>.</h3>
+<p class="t-p">Seat held for <b id="thanksCity">your city</b>. Check your email, your confirmation is on the way.</p>
+</div></div>
     </div>
 
     <div class="manifest" id="manifest">
@@ -359,7 +354,7 @@ function cityLabel(v){if(v==="any")return"Any / All";var s=stopByN(v);return s?s
 
 
 var _f=document.getElementById("reqForm"),_msg=document.getElementById("msg"),_btn=document.getElementById("reqBtn");
-document.getElementById("note").textContent="We email you back to confirm your seat. First come, first seated.";
+document.getElementById("note").textContent="Instant confirmation to your email. First come, first seated.";
 function _v(id){return document.getElementById(id).value.trim();}
 _f.addEventListener("submit",function(ev){
   ev.preventDefault();
@@ -368,12 +363,25 @@ _f.addEventListener("submit",function(ev){
   if(!nm||!em){_msg.className="msg warn";_msg.textContent="Add your name and email so we can reach you.";return;}
   if(!ct){_msg.className="msg warn";_msg.textContent="Pick which city you want in.";return;}
   _btn.disabled=true;_btn.textContent="Sending...";
-  var data={name:nm,email:em,phone:_v("i-phone"),city:ct,seats:document.getElementById("i-guests").value,note:_v("i-note"),_subject:"New Bag Day Tour seat request",_cc:"stephaniesan937@gmail.com,jackson.jahmyron05@gmail.com",_template:"table"};
+  var first=nm.split(" ")[0];
+  var data={
+    name:nm,email:em,phone:_v("i-phone"),city:ct,seats:document.getElementById("i-guests").value,note:_v("i-note"),
+    _subject:"New Bag Day Tour seat request - "+ct,
+    _cc:"stephaniesan937@gmail.com,jackson.jahmyron05@gmail.com",
+    _template:"table",
+    _autoresponse:"You're in, "+first+". Your seat is reserved for Bag Day Tour "+ct+". We confirm every seat by hand and send the venue and time before the public hears, so keep an eye on this inbox. Secure the bag. - Bag Day Tour"
+  };
   fetch("https://formsubmit.co/ajax/waltonjacob300@gmail.com",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(data)})
     .then(function(r){return r.json();})
-    .then(function(){document.getElementById("thanksName").textContent=nm.split(" ")[0];document.getElementById("thanksCity").textContent=ct;_f.hidden=true;var th=document.getElementById("thanks");th.hidden=false;th.scrollIntoView({behavior:"smooth",block:"center"});})
+    .then(function(){showThanks(nm,ct);})
     .catch(function(){_btn.disabled=false;_btn.textContent="Request Seat";_msg.className="msg warn";_msg.textContent="Something glitched. Try once more in a moment.";});
 });
+function showThanks(nm,ct){
+  document.getElementById("thanksName").textContent=nm.split(" ")[0];
+  document.getElementById("thanksCity").textContent=ct;
+  _f.hidden=true;var th=document.getElementById("thanks");th.hidden=false;
+  th.scrollIntoView({behavior:"smooth",block:"center"});
+}
 </script>
 
 </html>

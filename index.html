@@ -190,6 +190,12 @@ th{font-weight:700;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
 html{scroll-behavior:smooth}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 :focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+[hidden]{display:none!important}
+.reqcol{min-width:0}
+.thanks{border:1px solid var(--line-2);border-radius:16px;padding:32px 28px;background:linear-gradient(180deg,rgba(198,161,91,.07),transparent)}
+.thanks .t-k{font-weight:700;letter-spacing:.2em;text-transform:uppercase;font-size:11px;color:var(--gold)}
+.thanks .t-h{font-weight:900;text-transform:uppercase;font-size:clamp(24px,4.4vw,40px);line-height:1;margin-top:12px;letter-spacing:-.02em}
+.thanks .t-p{color:var(--muted);margin-top:14px;font-size:14px;line-height:1.7;max-width:42ch}
 </style>
 
 <nav class="nav">
@@ -233,7 +239,7 @@ html{scroll-behavior:smooth}
         <p class="lead">Seats are limited per room and confirmed by hand. Tell us where you want in. Venue and time go out by email before the public hears.</p>
         <div class="selcity">Selected City<b id="selCity">Pick a city</b></div>
       </div>
-      <form class="req" id="reqForm" action="https://formsubmit.co/waltonjacob300@gmail.com" method="POST">
+      <div class="reqcol"><form class="req" id="reqForm" action="https://formsubmit.co/waltonjacob300@gmail.com" method="POST">
           <input type="hidden" name="_subject" value="New Bag Day Tour seat request">
           <input type="hidden" name="_cc" value="stephaniesan937@gmail.com,jackson.jahmyron05@gmail.com">
           <input type="hidden" name="_template" value="table">
@@ -251,6 +257,11 @@ html{scroll-behavior:smooth}
         <div class="msg" id="msg" role="status" aria-live="polite"></div>
         <p class="note" id="note">Sent straight to the hosts. First come, first seated.</p>
       </form>
+        <div class="thanks" id="thanks" hidden>
+          <div class="t-k">Request Received</div>
+          <h3 class="t-h">You're in, <span id="thanksName">friend</span>.</h3>
+          <p class="t-p">Seat held for <b id="thanksCity">your city</b>. Watch your email, we confirm every seat by hand before the public hears.</p>
+        </div></div>
     </div>
 
     <div class="manifest" id="manifest">
@@ -347,7 +358,22 @@ if(nextIdx>-1)pick(STOPS[nextIdx].n,false);
 function cityLabel(v){if(v==="any")return"Any / All";var s=stopByN(v);return s?s.city:v;}
 
 
+var _f=document.getElementById("reqForm"),_msg=document.getElementById("msg"),_btn=document.getElementById("reqBtn");
 document.getElementById("note").textContent="We email you back to confirm your seat. First come, first seated.";
+function _v(id){return document.getElementById(id).value.trim();}
+_f.addEventListener("submit",function(ev){
+  ev.preventDefault();
+  var nm=_v("i-name"),em=_v("i-email"),ct=document.getElementById("i-city").value;
+  _msg.className="msg";
+  if(!nm||!em){_msg.className="msg warn";_msg.textContent="Add your name and email so we can reach you.";return;}
+  if(!ct){_msg.className="msg warn";_msg.textContent="Pick which city you want in.";return;}
+  _btn.disabled=true;_btn.textContent="Sending...";
+  var data={name:nm,email:em,phone:_v("i-phone"),city:ct,seats:document.getElementById("i-guests").value,note:_v("i-note"),_subject:"New Bag Day Tour seat request",_cc:"stephaniesan937@gmail.com,jackson.jahmyron05@gmail.com",_template:"table"};
+  fetch("https://formsubmit.co/ajax/waltonjacob300@gmail.com",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(data)})
+    .then(function(r){return r.json();})
+    .then(function(){document.getElementById("thanksName").textContent=nm.split(" ")[0];document.getElementById("thanksCity").textContent=ct;_f.hidden=true;var th=document.getElementById("thanks");th.hidden=false;th.scrollIntoView({behavior:"smooth",block:"center"});})
+    .catch(function(){_btn.disabled=false;_btn.textContent="Request Seat";_msg.className="msg warn";_msg.textContent="Something glitched. Try once more in a moment.";});
+});
 </script>
 
 </html>

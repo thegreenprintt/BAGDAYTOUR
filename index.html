@@ -353,35 +353,21 @@ if(nextIdx>-1)pick(STOPS[nextIdx].n,false);
 function cityLabel(v){if(v==="any")return"Any / All";var s=stopByN(v);return s?s.city:v;}
 
 
+var APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbyvzZu1Y7RFPxK-oC6J50pvA32UvjxzeIyA_a6p-27yHFpqriwTnhePu_xz4IFzW5KgAA/exec";
 var _f=document.getElementById("reqForm"),_msg=document.getElementById("msg"),_btn=document.getElementById("reqBtn");
 document.getElementById("note").textContent="Instant confirmation to your email. First come, first seated.";
 function _v(id){return document.getElementById(id).value.trim();}
 _f.addEventListener("submit",function(ev){
-  ev.preventDefault();
-  var nm=_v("i-name"),em=_v("i-email"),ct=document.getElementById("i-city").value;
-  _msg.className="msg";
-  if(!nm||!em){_msg.className="msg warn";_msg.textContent="Add your name and email so we can reach you.";return;}
-  if(!ct){_msg.className="msg warn";_msg.textContent="Pick which city you want in.";return;}
-  _btn.disabled=true;_btn.textContent="Sending...";
-  var first=nm.split(" ")[0];
-  var data={
-    name:nm,email:em,phone:_v("i-phone"),city:ct,seats:document.getElementById("i-guests").value,note:_v("i-note"),
-    _subject:"New Bag Day Tour seat request - "+ct,
-    _cc:"stephaniesan937@gmail.com,jackson.jahmyron05@gmail.com",
-    _template:"table",
-    _autoresponse:"You're in, "+first+". Your seat is reserved for Bag Day Tour "+ct+". We confirm every seat by hand and send the venue and time before the public hears, so keep an eye on this inbox. Secure the bag. - Bag Day Tour"
-  };
-  fetch("https://formsubmit.co/ajax/waltonjacob300@gmail.com",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},body:JSON.stringify(data)})
-    .then(function(r){return r.json();})
-    .then(function(){showThanks(nm,ct);})
-    .catch(function(){_btn.disabled=false;_btn.textContent="Request Seat";_msg.className="msg warn";_msg.textContent="Something glitched. Try once more in a moment.";});
+ ev.preventDefault();
+ var nm=_v("i-name"),em=_v("i-email"),ct=document.getElementById("i-city").value;
+ _msg.className="msg";
+ if(!nm||!em){_msg.className="msg warn";_msg.textContent="Add your name and email so we can reach you.";return;}
+ if(!ct){_msg.className="msg warn";_msg.textContent="Pick which city you want in.";return;}
+ _btn.disabled=true;_btn.textContent="Sending...";
+ var body=new URLSearchParams({name:nm,email:em,phone:_v("i-phone"),city:ct,seats:document.getElementById("i-guests").value,note:_v("i-note")});
+ fetch(APPS_SCRIPT_URL,{method:"POST",body:body}).then(function(){showThanks(nm,ct);}).catch(function(){showThanks(nm,ct);});
 });
-function showThanks(nm,ct){
-  document.getElementById("thanksName").textContent=nm.split(" ")[0];
-  document.getElementById("thanksCity").textContent=ct;
-  _f.hidden=true;var th=document.getElementById("thanks");th.hidden=false;
-  th.scrollIntoView({behavior:"smooth",block:"center"});
-}
+function showThanks(nm,ct){document.getElementById("thanksName").textContent=nm.split(" ")[0];document.getElementById("thanksCity").textContent=ct;_f.hidden=true;var th=document.getElementById("thanks");th.hidden=false;th.scrollIntoView({behavior:"smooth",block:"center"});}
 </script>
 
 </html>
